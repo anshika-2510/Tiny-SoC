@@ -1,6 +1,9 @@
+
 # I2C Master Controller
 
 Verilog implementation of an I2C master, built as part of my tiny SoC project. Handles standard I2C transactions (7-bit addressing, read/write, ACK/NACK) between the master and a slave device over SDA/SCL.
+
+<img width="1832" height="732" alt="36684" src="https://github.com/user-attachments/assets/b352b2a5-0516-48d7-a238-2e22df3c2168" />
 
 ## What it does
 
