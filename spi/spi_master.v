@@ -1,4 +1,3 @@
-
 module spi_master(
 input clk,
 input rst,
@@ -61,50 +60,62 @@ rx_data <= 0;
          
          end 
          LOAD:
-         begin
-         sclk<=0;
-         div_ct <= 0;         // we want every transder to start from fresh 
-       //  mosi <= tx_data[7]; // not mandatory // timing issue , transfer ralr has
-         tx_shift <= tx_data;
-         ct <= 0;
-         cs <= 0;
-         busy <= 1;
-         rx_shift <= 0;
-         state<=TRANSFER;
-         end
-      
-      
-      TRANSFER:
-      begin
-      div_ct<=div_ct+1;
-      if(div_ct==4)
-      begin
-      div_ct<=0;
-       if(sclk==0)
-       begin
-       mosi <= tx_shift[7];
-      tx_shift <= tx_shift << 1;
-  //  tx_shift <= tx_shift << 1;
-//mosi <= tx_shift[6];
-      rx_shift <= {rx_shift[6:0], miso};
-     
-         if(ct==7)
-         begin
-           rx_data<= {rx_shift[6:0], miso};  //non blocking so to get last bit 
-        done<=1;
-      state<=IDLE;
-      cs <= 1;
-     busy <= 0;
-         end
-        else
-         ct<=ct+1;
+begin
+    cs       <= 0;
+    busy     <= 1;
+    done     <= 0;
+    sclk     <= 0;
+    div_ct   <= 0;
+
+    // Pre-shift, exactly like the slave
+    tx_shift <= tx_data << 1;
+    mosi     <= tx_data[7];
+
+    rx_shift <= 0;
+    ct       <= 0;
+
+    state <= TRANSFER;
+end
+
+     TRANSFER:
+begin
+    div_ct <= div_ct + 1;
+
+    if (div_ct == 4)
+    begin
+        div_ct <= 0;
+
+        // Toggle SPI clock
+        sclk <= ~sclk;
+
+        // If SCLK is currently LOW, it will become HIGH.
+        // Rising edge -> Sample MISO
+        if (sclk == 0)
+        begin
+            rx_shift <= {rx_shift[6:0], miso};
+
+            if (ct == 7)
+            begin
+                rx_data <= {rx_shift[6:0], miso};
+                done    <= 1;
+                busy    <= 0;
+                cs      <= 1;
+                state   <= IDLE;
+            end
         end
-      sclk<=~sclk;
-      end
-      end
-      default: state<=IDLE;
+
+        // If SCLK is currently HIGH, it will become LOW.
+        // Falling edge -> Drive next MOSI bit
+        else
+        begin
+           mosi <= tx_shift[7];
+            tx_shift <= tx_shift << 1;
+            ct <= ct + 1;
+        end
+    end
+end
+    default: state<=IDLE;
      endcase
       end
        end        
  endmodule   
-
