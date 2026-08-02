@@ -1,14 +1,43 @@
-# Tiny SoC
+# Tiny-SoC
 
-RTL implementation of a Tiny System-on-Chip featuring UART, SPI, I2C, APB interconnect, and FIFO peripherals.
-## Features
+A small SoC built from scratch in Verilog — a set of common peripherals (UART, SPI, I2C) wired to a shared APB bus, along with their testbenches and simulation waveforms.
 
-- UART
-- SPI
-- I2C
-- FIFO
-- APB Bus Interconnect
+## Overview
+
+Tiny-SoC integrates standard communication peripherals behind an APB (Advanced Peripheral Bus) wrapper, so each peripheral is addressed and controlled through a common register interface rather than being driven ad hoc. Each peripheral is developed and verified standalone first, then wrapped for APB access.
+
+## Architecture
+
+```
+                ┌─────────────────────────────┐
+                │        APB Wrapper          │
+   APB bus ───▶ │  (addr decode / reg access)  │
+                └───────────┬─────────────────┘
+                            │
+        ┌───────────────────┼───────────────────┐
+        ▼                   ▼                   ▼
+   ┌──────────┐       ┌──────────┐        ┌──────────┐
+   │   UART   │       │   SPI    │        │   I2C    │
+   │ (16x OS, │       │ (master/ │        │          │
+   │  FIFO)   │       │  slave)  │        │          │
+   └──────────┘       └──────────┘        └──────────┘
+```
+
+## Peripherals
+
+| Peripheral | Description | Status |
+|---|---|---|
+| **UART** | RX with 16x oversampling for baud recovery, plus FIFO buffering | DONE |
+| **SPI** | Master + slave, Mode 0 (CPOL=0, CPHA=0) | DONE |
+| **I2C** | — | DONE |
+| **APB Wrapper** | Common register-access layer for all peripherals above | In progress |
+
+
+
+## Simulation
+
+Each peripheral has its own testbench under its respective folder. Waveforms are captured per-module (see individual module READMEs for details and bug notes).
 
 ## Status
 
-🚧 Under Development
+Actively under development — peripherals are being verified individually before final APB integration.
