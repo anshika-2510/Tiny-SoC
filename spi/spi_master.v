@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module spi_master(
 input clk,
 input rst,
@@ -22,6 +24,7 @@ reg [1:0] state;
   localparam  IDLE=2'b00;
   localparam  LOAD=2'b01;
   localparam  TRANSFER=2'b10;
+  localparam COOL =2'b11;
   
   reg[3:0] div_ct;
  
@@ -76,7 +79,6 @@ begin
 
     state <= TRANSFER;
 end
-
      TRANSFER:
 begin
     div_ct <= div_ct + 1;
@@ -99,13 +101,10 @@ begin
                 rx_data <= {rx_shift[6:0], miso};
                 done    <= 1;
                 busy    <= 0;
-                cs      <= 1;
-                state   <= IDLE;
+                //cs=1;
+                state   <= COOL;
             end
         end
-
-        // If SCLK is currently HIGH, it will become LOW.
-        // Falling edge -> Drive next MOSI bit
         else
         begin
            mosi <= tx_shift[7];
@@ -114,8 +113,26 @@ begin
         end
     end
 end
-    default: state<=IDLE;
+    COOL:  
+     begin
+    cs    <= 1;
+    state <= IDLE;
+end
+      default: state<=IDLE;
      endcase
       end
        end        
  endmodule   
+
+
+
+
+
+
+
+
+
+
+
+
+
